@@ -46,9 +46,6 @@ RUN chmod 4711 /usr/local/bin/paru && \
 # Copy settings file into user home directory
 COPY --chown=$USERNAME:users ./settings/ /home/$USERNAME/
 
-# Copy pem for AWS CLI
-COPY --chown=$USERNAME:users ./cert/cacert.pem /home/$USERNAME/.config/ca_certificates/cacert.pem
-
 # Add WSLU utility to pacman package manager repositories.
 COPY ./config/wslu.conf /home/$USERNAME/wslu.conf
 RUN cd /home/$USERNAME && \
