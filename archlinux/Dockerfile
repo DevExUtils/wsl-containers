@@ -10,9 +10,6 @@ RUN echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen && locale-gen
 # Set timezone
 RUN ln -snf /usr/share/zoneinfo/$TIMEZONE /etc/localtime && echo $TZ > /etc/timezone
 
-COPY ./cert/ZscalerRootCertificate.crt /etc/ca-certificates/trust-source/anchors/ZscalerRootCertificate.crt
-RUN sudo update-ca-trust extract
-
 # Update packages and install base packages system wide
 RUN pacman -Syu --noprogressbar --noconfirm && \
     pacman -S --needed --noprogressbar --noconfirm \
