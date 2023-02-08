@@ -1,0 +1,9 @@
+# Automatic labeling of Pull Request based on branch naming convention
+bug: ['bug/*', 'bugfix/*', 'fix/*']
+ci/cd: ['ci/*', 'cd/*', 'build/*']
+documentation: ['doc/*', 'docs/*', 'documentation/*']
+example: 'example/*'
+refactor: 'refactor/*'
+feature: ['feature/*', 'feat/*']
+security: ['sec/*', 'security/*']
+dependencies: ['deps/*', 'dependencies/*']

@@ -1,0 +1,10 @@
+[kubernetes]
+symbol = "⛵ "
+disabled = false
+
+[cmd_duration]
+style="fg:#88C0D0"
+
+[shell]
+disabled=false
+powershell_indicator="pwsh"
