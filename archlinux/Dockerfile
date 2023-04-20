@@ -14,7 +14,6 @@ RUN ln -snf /usr/share/zoneinfo/$TIMEZONE /etc/localtime && echo $TZ > /etc/time
 RUN pacman -Syu --noprogressbar --noconfirm && \
     pacman -S --needed --noprogressbar --noconfirm \
         pacman-contrib \
-        wget \
         git \
         less \
         zsh \
@@ -43,15 +42,11 @@ RUN cd ~ && \
 RUN chmod 4711 /usr/local/bin/paru && \
     chown $USERNAME /usr/local/bin/paru
 
-# Copy settings file into user home directory
-COPY --chown=$USERNAME:users ./settings/ /home/$USERNAME/
-
-# Add WSLU utility to pacman package manager repositories.
+# Add WSLU utility to pacman package repositories.
 COPY ./config/wslu.conf /home/$USERNAME/wslu.conf
 RUN cd /home/$USERNAME && \
     pacman-key --init && \
-    pacman-key -r A2861ABFD897DD37 && \
-    wget https://pkg.wslutiliti.es/public.key && \
+    curl -L https://pkg.wslutiliti.es/public.key -o public.key && \
     pacman-key --add public.key && \
     pacman-key --lsign-key A2861ABFD897DD37 && \
     cat /home/$USERNAME/wslu.conf >> /etc/pacman.conf && \
@@ -68,46 +63,63 @@ RUN sed -i "s/myuser/$USERNAME/g" /etc/wsl.conf
 # echo -e "[network]\ngenerateResolvConf = false" | sudo tee -a /etc/wsl.conf
 # sudo unlink /etc/resolv.conf
 # echo nameserver 1.1.1.1 | sudo tee /etc/resolv.conf
-#
 
 # Change to normal user and install applications with Paru
 USER $USERNAME
 RUN paru -Syu --noconfirm \
-        python \
-        pyenv \
-        nodejs \
-        fnm-bin \
-        pnpm-bin \
-        npm \
-        powershell-bin \
         aws-cli-v2 \
-        fzf \
-        zoxide \
-        git-delta \
-        neovim \
-        terraform \
-        ripgrep \
-        jq \
-        fd \
-        exa \
         bat \
-        zip \
+        chezmoi \
+        direnv \
+        exa \
+        fd \
+        fnm-bin \
+        fzf \
+        git-delta \
         github-cli \
-        procs \
+        jq \
+        kubectl-bin \
+        neovim \
+        nodejs \
+        npm \
         onefetch \
-        wslu \
+        pnpm-bin \
+        powershell-bin \
+        procs \
+        pyenv \
+        python \
         reflector \
+        ripgrep \
         rsync \
-        # git-interactive-rebase-tool \
         starship && \
+        terraform \
+        unzip \
+        wget \
+        wslu \
+        xdg-ninja-git \
+        zip \
+        zoxide && \
     paccache -rfk0
 
+# Set user PATH and XDG Folders for container install
+ENV PATH="/home/$USERNAME/.local/bin:$PATH"
+ENV XDG_CONFIG_HOME="$HOME/.config"
+ENV XDG_DATA_HOME="$HOME/.local/share"
+ENV XDG_CACHE_HOME="$HOME/.cache"
 
-# installing npx sudo npm install -g npm
+# Setup .dotfiles from github via chezmoi
+RUN chezmoi init https://github.com/DevExUtils/archlinux-dotfiles.git --apply
+
+# Install ZSH completions
+RUN fnm completions --shell zsh > ~/.local/share/zsh/site-functions/_fnm
+
+# Install CDK through NPM
+ENV NPM_CONFIG_USERCONFIG="/home/$USERNAME/.config/npm/npmrc"
+RUN npm install -g npm && \
+    npm install -g typescript && \
+    npm install -g aws-cdk
 
 # Install python based tools
-ENV PATH="/home/$USERNAME/.local/bin:$PATH" 
-
 RUN python -m ensurepip --upgrade && \
     python -m pip install --upgrade pip && \
     python -m pip install pipx
@@ -116,8 +128,5 @@ RUN pipx install poetry && \
     pipx install cfn-lint && \
     pipx install pre-commit && \
     pipx install aws-sso-util && \
-    pipx install thefuck
 
 #RUN reflector -c Denmark,Germany,Sweden, --fastest 8
-# Fix issue with repository trust:
-#RUN git config --global --add safe.directory '*'

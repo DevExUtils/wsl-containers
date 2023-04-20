@@ -10,7 +10,6 @@ It contains:
 * Installing paru as an AUR helper.
 * Using paru to install tools from AUR.
 
-
 ## Requirements
 
 Before you get started you need the following software already in place:

@@ -87,3 +87,36 @@ Function Convert-WSLPath {
         }
     }
 }
+
+Function Install-Distro {
+
+    [CmdletBinding()]
+    [Alias("wslpath")]
+
+    Param(
+
+        [Parameter(
+            Position = 0,
+            Mandatory = $True
+        )]
+        [string]$UserName,
+
+        [Parameter(
+            Position = 1,
+            Mandatory = $false
+        )]
+        [ValidateSet("Europe/Copenhagen","America/New_York","Asia/Kolkata")]
+        [string]$TimeZone
+    )
+
+    process {
+
+        docker build --build-arg USERNAME=$UserName --build-arg TIMEZONE=$TimeZone -t arch-container:latest .
+        docker run --name arch-container arch-container:latest 
+        docker export arch-container -o arch-container.tar
+        docker rm -f arch-container
+        mv .\arch-container.tar C:\wsl\archlinux\arch-container.tar
+        wsl --import ArchLinux C:\wsl\archlinux C:\wsl\archlinux\arch-container.tar
+        rm C:\wsl\archlinux\arch-container.tar
+    }
+}
