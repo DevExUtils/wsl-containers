@@ -13,17 +13,19 @@ Build and setup one of the available WSL distributions the following software is
 ### Windows Linux Subsystem (WSL)
 
 1. Start a shell prompt as administrator
-2. Run the following sell command:
+2. Run the following sell commands:
 
 ```console
-dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
-```
+# Enables Hyper-V Tier 1 Hypervisor features
+dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
 
-3. Download and install the [Linux Kernel update][Kernel] from Microsoft
-4. Run the following shell commands:
+# Installs Windows Store version of WSL without a default distrobution
+wsl --install --no-distribution
 
-```console
+# Use WSL version 2 as default
 wsl --set-default-version 2
+
+# Check for updates to WSL
 wsl --update
 ```
 
