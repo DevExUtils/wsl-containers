@@ -91,7 +91,7 @@ RUN paru -Syu --noconfirm \
         reflector \
         ripgrep \
         rsync \
-        starship && \
+        starship \
         terraform \
         unzip \
         wget \
@@ -101,17 +101,17 @@ RUN paru -Syu --noconfirm \
         zoxide && \
     paccache -rfk0
 
-# Set user PATH and XDG Folders for container install
-ENV PATH="/home/$USERNAME/.local/bin:$PATH"
-ENV XDG_CONFIG_HOME="$HOME/.config"
-ENV XDG_DATA_HOME="$HOME/.local/share"
-ENV XDG_CACHE_HOME="$HOME/.cache"
-
 # Setup .dotfiles from github via chezmoi
 RUN chezmoi init https://github.com/DevExUtils/archlinux-dotfiles.git --apply
 
-# Install ZSH completions
-RUN fnm completions --shell zsh > ~/.local/share/zsh/site-functions/_fnm
+# Set user PATH and XDG Folders for container install
+RUN mkdir -p $HOME/.local/share/npm && \
+    mkdir -p $HOME/.cache/npm
+
+ENV PATH="/home/$USERNAME/.local/bin:$PATH"
+ENV XDG_CONFIG_HOME="/home/$USERNAME/.config"
+ENV XDG_DATA_HOME="/home/$USERNAME/.local/share"
+ENV XDG_CACHE_HOME="/home/$USERNAME/.cache"
 
 # Install CDK through NPM
 ENV NPM_CONFIG_USERCONFIG="/home/$USERNAME/.config/npm/npmrc"
@@ -127,6 +127,6 @@ RUN python -m ensurepip --upgrade && \
 RUN pipx install poetry && \
     pipx install cfn-lint && \
     pipx install pre-commit && \
-    pipx install aws-sso-util && \
+    pipx install aws-sso-util
 
 #RUN reflector -c Denmark,Germany,Sweden, --fastest 8
