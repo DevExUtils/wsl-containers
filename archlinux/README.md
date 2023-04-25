@@ -12,37 +12,7 @@ It contains:
 
 ## Requirements
 
-Before you get started you need the following software already in place:
-
-### Windows Linux Subsystem (WSL)
-
-1. Start a shell prompt as administrator
-2. Run the following sell command:
-
-```console
-dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
-```
-3. Download and install the [Linux Kernel update][Kernel] from Microsoft
-4. Run the following shell commands:
-```console
-wsl --set-default-version 2
-wsl --update
-```
-
-### Docker Desktop
-
-Docker Desktop depends on you already having installed WSL.
-
-**Install through console**:
-1. Start a shell prompt as administrator
-2. Run the following sell command:
-```console
-winget install -e --id Docker.DockerDesktop
-```
-**Install through GUI**:  
-1. Go to the [Docker Desktop installation][DockerDesktop] website
-2. Download and install
-
+Before you get started, install the requirements from project root README file.
 
 ## Exporting as a WSL distribution
 
