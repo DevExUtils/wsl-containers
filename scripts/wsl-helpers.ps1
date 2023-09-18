@@ -4,8 +4,8 @@ Function Set-WSLDefaultSymlinks {
         $GHCLIPath = Convert-WSLPath -Path "$env:APPDATA\GitHub CLI"
         Set-WSLSymLink -SourcePath $GHCLIPath -DestinationPath ~/.config/gh
 
-        $GHCLIPath = Convert-WSLPath -Path "$env:UserProfile\.aws"
-        Set-WSLSymLink -SourcePath $GHCLIPath -DestinationPath ~/.aws
+        $AWSConfigPath = Convert-WSLPath -Path "$env:UserProfile\.aws"
+        Set-WSLSymLink -SourcePath $AWSConfigPath -DestinationPath ~/.aws
     }
 }
 
@@ -88,35 +88,62 @@ Function Convert-WSLPath {
     }
 }
 
-Function Install-Distro {
+Function Install-LinuxDistribution {
 
     [CmdletBinding()]
-    [Alias("wslpath")]
-
+    
     Param(
 
-        [Parameter(
-            Position = 0,
-            Mandatory = $True
-        )]
+        [Parameter(Position = 0, Mandatory = $true)]
         [string]$UserName,
 
-        [Parameter(
-            Position = 1,
-            Mandatory = $false
-        )]
-        [ValidateSet("Europe/Copenhagen","America/New_York","Asia/Kolkata")]
-        [string]$TimeZone
+        [Parameter(Position = 1, Mandatory = $true)]
+        [string]$Name,
+
+        [Parameter(Position = 2, Mandatory = $true)]
+        [string]$Email,
+
+        [Parameter(Position = 3,Mandatory = $true)]
+        #[ValidateSet("archlinux")]
+        [string]$LinuxDistroName
     )
 
-    process {
+    begin {
+        $ContainerName = "$($LinuxDistroName.ToLower())-container"
+        $TarFileName = "$($ContainerName).tar"
+    }
 
-        docker build --build-arg USERNAME=$UserName --build-arg TIMEZONE=$TimeZone -t arch-container:latest .
-        docker run --name arch-container arch-container:latest 
-        docker export arch-container -o arch-container.tar
-        docker rm -f arch-container
-        mv .\arch-container.tar C:\wsl\archlinux\arch-container.tar
-        wsl --import ArchLinux C:\wsl\archlinux C:\wsl\archlinux\arch-container.tar
-        rm C:\wsl\archlinux\arch-container.tar
+    process {
+        Write-Output "Building Docker Container Image"
+        docker build --build-arg USERNAME=$UserName --build-arg NAME=$Name --build-arg EMAIL=$Email -t "$($ContainerName):latest" .
+
+        Write-Output "Running Container and Exporting filesystem to .tar file"
+        docker run --name $ContainerName "$($ContainerName):latest"
+        docker export $ContainerName -o $TarFileName
+
+        Write-Output "Removing Container"
+        docker rm -f $ContainerName
+
+        if (-Not (Test-Path c:\wsl)) {
+            Write-Output "WSL Path not found, Creating"
+            New-Item -Path "c:\" -Name "wsl" -ItemType "directory"
+        } 
+
+        if (-Not (Test-Path c:\wsl\$LinuxDistroName)) {
+            Write-Output "c:\wsl\$LinuxDistroName Path not found. Creating Directory"
+            New-Item -Path "c:\wsl" -Name $LinuxDistroName -ItemType "directory"
+        } 
+
+        Write-Output "Moving $TarFileName to WSL root folder"
+        mv ".\$TarFileName" "C:\wsl\$LinuxDistroName\$TarFileName"
+
+        Write-Output "Importing $TarFileName as a WSL Linux Distribution called $LinuxDistroName"
+        wsl --import "$LinuxDistroName" "C:\wsl\$LinuxDistroName" "C:\wsl\$LinuxDistroName\$TarFileName"
+
+        Write-Output "Removing $TarFileName from system"
+        rm "C:\wsl\$LinuxDistroName\$TarFileName"
+
+        Write-Output "Removing /.dockerenv file from WSL filesystem"
+        wsl -d $LinuxDistroName -u $UserName sudo rm /.dockerenv
     }
 }
