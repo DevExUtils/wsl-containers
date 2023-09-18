@@ -1,14 +1,12 @@
 FROM archlinux:base-devel
 
-# Arguments required for base username and password
-ARG USERNAME=myuser
-ARG TIMEZONE="Europe/Copenhagen"
+# Arguments for system username and Chezmoi config options
+ARG USERNAME="myuser"
+ARG NAME="Firstname Lastname"
+ARG EMAIL="user@domain.tld"
 
 # Set locals
 RUN echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen && locale-gen
-
-# Set timezone
-RUN ln -snf /usr/share/zoneinfo/$TIMEZONE /etc/localtime && echo $TZ > /etc/timezone
 
 # Update packages and install base packages system wide
 RUN pacman -Syu --noprogressbar --noconfirm && \
@@ -17,9 +15,10 @@ RUN pacman -Syu --noprogressbar --noconfirm && \
         git \
         less \
         zsh \
+        chezmoi  \
     && paccache -rfk0
 
-# Allow none root user to sudo without password 
+# Allow none root user to sudo without password
 RUN chmod 640 /etc/sudoers && echo '%wheel ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers && chmod 440 /etc/sudoers
 
 # Create none root user
@@ -42,91 +41,21 @@ RUN cd ~ && \
 RUN chmod 4711 /usr/local/bin/paru && \
     chown $USERNAME /usr/local/bin/paru
 
-# Add WSLU utility to pacman package repositories.
-COPY ./config/wslu.conf /home/$USERNAME/wslu.conf
+# Add WSLU utility to pacman package repositories and the /etc/pacman.conf file.
 RUN cd /home/$USERNAME && \
     pacman-key --init && \
     curl -L https://pkg.wslutiliti.es/public.key -o public.key && \
     pacman-key --add public.key && \
-    pacman-key --lsign-key A2861ABFD897DD37 && \
-    cat /home/$USERNAME/wslu.conf >> /etc/pacman.conf && \
-    rm /home/$USERNAME/wslu.conf && rm /home/$USERNAME/public.key && \
+    pacman-key --lsign-key 2D4C887EB08424F157151C493DD50AA7E055D853 && \
+    printf "\n[wslutilities]\nServer = https://pkg.wslutiliti.es/arch/" | sudo tee -a /etc/pacman.conf && \
+    rm /home/$USERNAME/public.key && \
     pacman -Syu
 
-# Add wsl.conf to ensure WSL and other proccesses starts the WSL distribution with your own user instead of root
-# Alternative printf "\n[user]\ndefault = myusername\n" | sudo tee -a /etc/wsl.conf
+# Adds wsl.conf file to set regular user as default instead of root & enable systemd support
+RUN printf "[user]\ndefault=$USERNAME\n\n[boot]\nsystemd=true" | sudo tee -a /etc/wsl.conf
 
-COPY ./config/wsl.conf /etc/wsl.conf
-RUN sed -i "s/myuser/$USERNAME/g" /etc/wsl.conf
-
-# Potential network fix
-# echo -e "[network]\ngenerateResolvConf = false" | sudo tee -a /etc/wsl.conf
-# sudo unlink /etc/resolv.conf
-# echo nameserver 1.1.1.1 | sudo tee /etc/resolv.conf
-
-# Change to normal user and install applications with Paru
+# Change to normal user and install boostrap setup with Chezmoi
 USER $USERNAME
-RUN paru -Syu --noconfirm \
-        aws-cli-v2 \
-        bat \
-        chezmoi \
-        direnv \
-        exa \
-        fd \
-        fnm-bin \
-        fzf \
-        git-delta \
-        github-cli \
-        jq \
-        kubectl-bin \
-        neovim \
-        nodejs \
-        npm \
-        onefetch \
-        pnpm-bin \
-        powershell-bin \
-        procs \
-        pyenv \
-        python \
-        reflector \
-        ripgrep \
-        rsync \
-        starship \
-        terraform \
-        unzip \
-        wget \
-        wslu \
-        xdg-ninja-git \
-        zip \
-        zoxide && \
-    paccache -rfk0
 
 # Setup .dotfiles from github via chezmoi
-RUN chezmoi init https://github.com/DevExUtils/archlinux-dotfiles.git --apply
-
-# Set user PATH and XDG Folders for container install
-RUN mkdir -p $HOME/.local/share/npm && \
-    mkdir -p $HOME/.cache/npm
-
-ENV PATH="/home/$USERNAME/.local/bin:$PATH"
-ENV XDG_CONFIG_HOME="/home/$USERNAME/.config"
-ENV XDG_DATA_HOME="/home/$USERNAME/.local/share"
-ENV XDG_CACHE_HOME="/home/$USERNAME/.cache"
-
-# Install CDK through NPM
-ENV NPM_CONFIG_USERCONFIG="/home/$USERNAME/.config/npm/npmrc"
-RUN npm install -g npm && \
-    npm install -g typescript && \
-    npm install -g aws-cdk
-
-# Install python based tools
-RUN python -m ensurepip --upgrade && \
-    python -m pip install --upgrade pip && \
-    python -m pip install pipx
-
-RUN pipx install poetry && \
-    pipx install cfn-lint && \
-    pipx install pre-commit && \
-    pipx install aws-sso-util
-
-#RUN reflector -c Denmark,Germany,Sweden, --fastest 8
+RUN chezmoi init https://github.com/DevExUtils/archlinux-dotfiles.git --promptString "email"="$EMAIL" --promptString "name"="$NAME" --promptBool "work_device"="false" --apply
