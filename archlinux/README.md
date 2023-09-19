@@ -22,13 +22,14 @@ These steps are to install and setup the arch container.
 
 To get started follow these steps.
 
-Replace **myuser** with the desired username in the WSL distribution.
-Replace **Europe/Copenhagen** with your Time Zone.
-If in doubt, use your Novo Nordisk credentials. 
+Replace **myuser** with the desired username in the WSL distribution.  
+Replace **Firstname Lastname** with your full name.
+Replace **user@domain.tld** with your email address.
+
 
 ```sh
 # Build the container image using docker
-docker build --build-arg USERNAME=myuser --build-arg TIMEZONE="Europe/Copenhagen" -t arch-container:latest .
+docker build --build-arg USERNAME=myuser --build-arg NAME="Firstname Lastname" --build-arg EMAIL="user@domain.tld" -t arch-container:latest .
 
 # Create a running container instance of the image we can export 
 docker run --name arch-container arch-container:latest 
