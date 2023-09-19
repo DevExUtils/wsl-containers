@@ -62,18 +62,13 @@ From a PowerShell console, cd into the `./scripts` folder.
 Then import the shell commands into your current session by running:
 
 ```console
-cd .\scripts\
-. .\wsl-helpers.ps1
+. .\scripts\\wsl-helpers.ps1
 ```
 To map both your AWS CLI and Github CLI settings from Windows into your WSL run:
 
 ```console
 Set-WSLDefaultSymlinks
 ```
-
-
-
-
 
 
 
