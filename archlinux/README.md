@@ -23,8 +23,8 @@ These steps are to install and setup the arch container.
 To get started follow these steps.
 
 Replace **myuser** with the desired username in the WSL distribution.  
-Replace **Firstname Lastname** with your full name.
-Replace **user@domain.tld** with your email address.
+Replace **Firstname Lastname** with your full name.  
+Replace **user@domain.tld** with your email address.  
 
 
 ```sh
