@@ -105,7 +105,10 @@ Function Install-LinuxDistribution {
 
         [Parameter(Position = 3,Mandatory = $true)]
         #[ValidateSet("archlinux")]
-        [string]$LinuxDistroName
+        [string]$LinuxDistroName,
+
+        [Parameter(Position = 4,Mandatory = $false)]
+        [switch]$KeepTarFile
     )
 
     begin {
@@ -135,15 +138,20 @@ Function Install-LinuxDistribution {
         } 
 
         Write-Output "Moving $TarFileName to WSL root folder"
-        mv ".\$TarFileName" "C:\wsl\$LinuxDistroName\$TarFileName"
+        Move-Item ".\$TarFileName" "C:\wsl\$LinuxDistroName\$TarFileName"
 
         Write-Output "Importing $TarFileName as a WSL Linux Distribution called $LinuxDistroName"
         wsl --import "$LinuxDistroName" "C:\wsl\$LinuxDistroName" "C:\wsl\$LinuxDistroName\$TarFileName"
 
+        if (-Not $KeepTarFile.IsPresent) {
         Write-Output "Removing $TarFileName from system"
-        rm "C:\wsl\$LinuxDistroName\$TarFileName"
+        Remove-Item "C:\wsl\$LinuxDistroName\$TarFileName"
+        }
 
         Write-Output "Removing /.dockerenv file from WSL filesystem"
         wsl -d $LinuxDistroName -u $UserName sudo rm /.dockerenv
+
+        Write-Output "Setting OpenDNS 1.1.1.1 as the Nameserver of the WSL Distrobution"
+        wsl -d $LinuxDistroName -u $UserName /usr/sbin/zsh -c "printf 'nameserver 1.1.1.1' | sudo tee /etc/resolv.conf"
     }
 }
