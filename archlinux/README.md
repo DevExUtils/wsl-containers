@@ -23,8 +23,8 @@ These steps are to install and setup the arch container.
 To get started follow these steps.
 
 Replace **myuser** with the desired username in the WSL distribution.  
-Replace **Firstname Lastname** with your full name.  
-Replace **user@domain.tld** with your email address.  
+Replace **Firstname Lastname** with your full name.
+Replace **user@domain.tld** with your email address.
 
 
 ```sh
@@ -86,6 +86,7 @@ wsl --set-default ArchLinux
 ### Post installation cleanup in Windows
 
 Unless you want to keep the .tar file to re-install the exact same build at a later date, you can safely remove the .tar file as it is no longer needed.
+
 ```sh
 # Move the .tar file with your distribution to the WSL folder.
 rm C:\wsl\archlinux\arch-container.tar
@@ -96,7 +97,7 @@ rm C:\wsl\archlinux\arch-container.tar
 Inside your new WSL distribution, the Docker build process has left a file called `.dockerenv`.
 I recommend removing this file as some applications will detect this file and assume they are running inside a container.
 
-Inside your WSL distribution: 
+Inside your WSL distribution:  
 
 ```sh
 sudo rm /.dockerenv
@@ -106,6 +107,7 @@ sudo rm /.dockerenv
 
 You can always rebuild your container image and import it into WSL.
 To remove the old distribution from your WSL and clean up the `ext4.vhdx` file:
+
 ```sh
 # Removes the Linux Distribution from your system.
 wsl --unregister ArchLinux
