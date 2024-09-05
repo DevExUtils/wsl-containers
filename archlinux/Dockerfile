@@ -8,6 +8,9 @@ ARG EMAIL="user@domain.tld"
 # Set locals
 RUN echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen && locale-gen
 
+# Set to use cloudflare mirrors per default
+RUN printf 'Server = https://cloudflaremirrors.com/archlinux/$repo/os/$arch' | sudo tee /etc/pacman.d/mirrorlist
+
 # Update packages and install base packages system wide
 RUN pacman -Syu --noprogressbar --noconfirm && \
     pacman -S --needed --noprogressbar --noconfirm \
@@ -15,7 +18,7 @@ RUN pacman -Syu --noprogressbar --noconfirm && \
         git \
         less \
         zsh \
-        chezmoi  \
+        chezmoi \
     && paccache -rfk0
 
 # Allow none root user to sudo without password
@@ -27,19 +30,20 @@ RUN useradd -m -g users -G wheel -s /bin/zsh $USERNAME
 # Add colors to pacman
 RUN sed -i '/Color/s/^#//' /etc/pacman.conf 
 
-# Install Paru as AUR helper
-ENV PARU_VERSION=1.11.2
+# Install YAY as AUR helper
+ENV YAY_VERSION=12.3.5
 RUN cd ~ && \
-    mkdir paru && cd paru && \
-    curl -L https://github.com/Morganamilo/paru/releases/download/v${PARU_VERSION}/paru-v${PARU_VERSION}-x86_64.tar.zst -o paru.tar.zst && \
-    tar --use-compress-program=unzstd -xvf paru.tar.zst && \
-    chmod +x paru && \
-    mv paru /usr/local/bin/ && \
-    cd ~ && rm -rf paru
+    mkdir yay && cd yay && \
+    curl -L https://github.com/Jguer/yay/releases/download/v${YAY_VERSION}/yay_${YAY_VERSION}_x86_64.tar.gz -o yay.tar.gz && \
+    tar -xvzf yay.tar.gz && \
+    cd yay_${YAY_VERSION}_x86_64 && \
+    chmod +x yay && \
+    mv yay /usr/local/bin/ && \
+    cd ~ && rm -rf yay
 
 # Change ownership of Paru to user
-RUN chmod 4711 /usr/local/bin/paru && \
-    chown $USERNAME /usr/local/bin/paru
+RUN chmod 4711 /usr/local/bin/yay && \
+    chown $USERNAME /usr/local/bin/yay
 
 # Add WSLU utility to pacman package repositories and the /etc/pacman.conf file.
 RUN cd /home/$USERNAME && \
@@ -53,6 +57,9 @@ RUN cd /home/$USERNAME && \
 
 # Adds wsl.conf file to set regular user as default instead of root & enable systemd support
 RUN printf "[user]\ndefault=$USERNAME\n\n[boot]\nsystemd=true" | sudo tee -a /etc/wsl.conf
+
+# Change WSL Network resolver from machine to OpenDNS to prevent resolver issues
+RUN printf "\n\n[network]\ngenerateResolvConf=false" | sudo tee -a /etc/wsl.conf
 
 # Change to normal user and install boostrap setup with Chezmoi
 USER $USERNAME
