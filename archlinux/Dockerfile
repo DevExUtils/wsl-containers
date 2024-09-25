@@ -31,7 +31,7 @@ RUN useradd -m -g users -G wheel -s /bin/zsh $USERNAME
 RUN sed -i '/Color/s/^#//' /etc/pacman.conf 
 
 # Install YAY as AUR helper
-ENV YAY_VERSION=12.3.5
+ENV YAY_VERSION=12.4.2
 RUN cd ~ && \
     mkdir yay && cd yay && \
     curl -L https://github.com/Jguer/yay/releases/download/v${YAY_VERSION}/yay_${YAY_VERSION}_x86_64.tar.gz -o yay.tar.gz && \
