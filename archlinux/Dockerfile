@@ -45,16 +45,6 @@ RUN cd ~ && \
 RUN chmod 4711 /usr/local/bin/yay && \
     chown $USERNAME /usr/local/bin/yay
 
-# Add WSLU utility to pacman package repositories and the /etc/pacman.conf file.
-RUN cd /home/$USERNAME && \
-    pacman-key --init && \
-    curl -L https://pkg.wslutiliti.es/public.key -o public.key && \
-    pacman-key --add public.key && \
-    pacman-key --lsign-key 2D4C887EB08424F157151C493DD50AA7E055D853 && \
-    printf "\n[wslutilities]\nServer = https://pkg.wslutiliti.es/arch/" | sudo tee -a /etc/pacman.conf && \
-    rm /home/$USERNAME/public.key && \
-    pacman -Syu
-
 # Adds wsl.conf file to set regular user as default instead of root & enable systemd support
 RUN printf "[user]\ndefault=$USERNAME\n\n[boot]\nsystemd=true" | sudo tee -a /etc/wsl.conf
 
